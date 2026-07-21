@@ -6,7 +6,7 @@ def check_smb_access(ip, share, user):
     # Use subprocess to call the native smbclient tool
     cmd = ['smbclient', f'//{ip}/{share}', '-U', f'{user}', '-c', 'ls']
 
-    result = subprocess.run(cmd, cature_output = True, text = True)
+    result = subprocess.run(cmd, capture_output = True, text = True)
 
     if result.returncode == 0:
         print("\nSUCCESS: SMB share is accessible. Contents:")
