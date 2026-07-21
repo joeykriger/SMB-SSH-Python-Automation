@@ -44,10 +44,10 @@ As an IT Support Technician, manual administration doesn't scale. To demonstrate
 5. Leave Gateway/DNS blank (isolated network).
 
 **Ubuntu Desktop VM:**
-1. Open **Settings** -> **Network** -> **Wired Options (gear icon)**.
-2. Go to the **IPv4** tab. Change to **Manual**.
-3. Set Address: `192.168.10.10`, Netmask: `255.255.255.0`.
-4. Click **Apply** and toggle the network connection off/on.
+1. Navigate to the **Netplan YAML** for the **internal network** adapter.
+2. Set the static address: `192.168.10.10/24`.
+3. Use **#** to comment out the **dhcp4** configuration section.
+4. **Save** and **Exit** the YAML file.
 
 ---
 
@@ -221,25 +221,10 @@ This lab directly exercises multiple layers of the OSI model:
 
 ---
 
-## 12. Interview Talking Points
-When discussing this lab with potential employers, emphasize the following:
-* *"I designed an isolated virtual environment to test interoperability between Windows and Linux without jeopardizing a production network."*
-* *"Rather than just setting up file shares, I wrote Python scripts to act as a health-check monitor, simulating how a tech would verify service uptime at scale."*
-* *"I intentionally broke my own environment—messing with subnet masks, firewalls, and service states—so I could practice structured troubleshooting using the CompTIA methodology."*
-* *"I prioritized using Python's standard library (`socket`, `subprocess`) to ensure my scripts could run anywhere without dependency management overhead."*
+## 12. Key Takeaways
+* *I designed an isolated virtual environment to test interoperability between Windows and Linux without jeopardizing a production network.*
+* *Rather than just setting up file shares, I wrote Python scripts to act as a health-check monitor, simulating how a tech would verify service uptime at scale.*
+* *I intentionally broke my own environment—messing with subnet masks, firewalls, and service states—so I could practice structured troubleshooting using the CompTIA methodology.*
+* *I prioritized using Python's standard library (`socket`, `subprocess`) to ensure my scripts could run anywhere without dependency management overhead.*
 
 ---
-
-## 13. Resume Bullet Examples
-* Designed and deployed a cross-platform (Windows/Linux) virtual lab environment using Oracle VirtualBox, configuring static IP networking and internal virtual switches.
-* Engineered Python automation scripts utilizing the standard library (`socket`, `subprocess`) to monitor network uptime and audit SSH/SMB service availability.
-* Applied the CompTIA 6-step troubleshooting methodology to diagnose and resolve complex OSI Layer 3–7 issues involving firewalls, subnets, and NTFS permissions.
-* Configured bi-directional OpenSSH and Samba/SMB file sharing to facilitate secure cross-OS administration and file transfers.
-
----
-
-## 14. Stretch Goals (Next Steps)
-To take this lab further as your Python skills grow, consider adding:
-1. **Public Key Authentication:** Generate SSH keys (`ssh-keygen`) and share them between VMs so the Python scripts don't require manual password entry.
-2. **Data Hashing:** Add `hashlib` to your Python script to generate a SHA-256 hash of a file before transferring it via SMB, and verify the hash on the receiving end to ensure data integrity.
-3. **Automated Email Alerts:** Integrate the `smtplib` module to email the resulting `network_audit.log` report to an administrator.
