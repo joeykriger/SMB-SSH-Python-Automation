@@ -53,7 +53,7 @@ As an IT Support Technician, manual administration doesn't scale. To demonstrate
 
 ## 6. The Intentional Sabotages (Setup Phase)
 To practice troubleshooting later, intentionally misconfigure the following items during your setup:
-1. **The Subnet Sabotage:** On the Windows VM, change the Subnet mask to `255.255.255.128` (instead of 255.255.255.0). 
+1. **The Subnet Sabotage:** On the Windows VM, change the IP address to `192.168.11.20` (instead of 192.168.10.20). 
 2. **The Firewall Sabotage:** On Windows, create a Windows Defender Firewall rule explicitly **Blocking** inbound traffic on TCP Port 445.
 3. **The Service Sabotage:** On Ubuntu, stop and disable the SSH service: `sudo systemctl stop ssh` and `sudo systemctl disable ssh`.
 4. **The Permission Sabotage:** On Windows, remove "Read" permissions for the shared SMB folder under the NTFS Security tab (leave Share permissions intact).
@@ -174,37 +174,37 @@ if __name__ == "__main__":
     run_remote_command("192.168.10.20", win_user, "ipconfig")
 ```
 
+### Script 3: SMB Verification Script (`smb_check.py`)
+*Note: This script requires the `smbclient` utility. Install it on your Ubuntu VM first by running: `sudo apt install smbclient -y`.*
+
+This script uses the `subprocess` module to invoke the native Linux SMB tool to verify if the Windows share is reachable and readable.
+
+```python
+import subprocess
+
+def check_smb_access(ip, share, user):
+    print(f"Testing access to \\\\{ip}\\{share}...")
+    
+    # Use subprocess to call the native smbclient tool
+    cmd = ['smbclient', f'//{ip}/{share}', '-U', f'{user}', '-c', 'ls']
+    
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    
+    if result.returncode == 0:
+        print("\nSUCCESS: SMB share is accessible. Contents:")
+        print(result.stdout)
+    else:
+        print("\nFAILURE: Access Denied or Share Unavailable.")
+        print(result.stderr)
+
+if __name__ == "__main__":
+    win_user = input("Enter Windows Username (e.g., localadmin): ")
+    check_smb_access("192.168.10.20", "WinShare", win_user)
+```
+
 ---
 
-## 9. CompTIA Troubleshooting Walkthrough
-*When you run your Python scripts, they will fail due to the sabotages you planted. Let's walk through the CompTIA 6-step methodology to fix them.*
-
-### Sabotage 1 & 2: Ping Fails, SMB (445) is Closed
-* **Step 1: Identify the problem.** `net_check.py` reports Ping is unreachable and Port 445 is closed. 
-* **Step 2: Establish a theory.** (OSI Layer 3). Ping relies on correct IP addressing and subnet masks. Alternatively, Windows Firewall is blocking it.
-* **Step 3: Test the theory.** Run `ipconfig` on Windows. Wait, the subnet mask is `255.255.255.128`. Ubuntu is on `.10` and Windows is on `.20`. Under `/25`, these are in the same subnet. Ping should work. The theory shifts to Firewall. 
-* **Step 4: Establish a plan.** Disable the explicit Block rule for Port 445 in Windows Defender Firewall and allow ICMP Echo Requests.
-* **Step 5: Implement.** Open `wf.msc`, delete the Port 445 Block rule, and enable "File and Printer Sharing (Echo Request - ICMPv4-In)".
-* **Step 6: Verify.** Run `net_check.py` again. Ping and Port 445 now report SUCCESS.
-
-### Sabotage 3: Windows SSH into Ubuntu Fails
-* **Step 1: Identify the problem.** From Windows, `ssh user@192.168.10.10` results in "Connection refused".
-* **Step 2: Establish a theory.** (OSI Layer 7 / Layer 4). The SSH service (daemon) is not running on Ubuntu.
-* **Step 3: Test the theory.** On Ubuntu, run `systemctl status ssh`. The output shows "Inactive (dead)". Theory confirmed.
-* **Step 4: Establish a plan.** Start and enable the SSH service.
-* **Step 5: Implement.** Run `sudo systemctl start ssh` and `sudo systemctl enable ssh`.
-* **Step 6: Verify.** Execute the SSH connection from Windows again. Success.
-
-### Sabotage 4: Python SMB Script reports "Access Denied"
-* **Step 1: Identify the problem.** You can see the `\WinShare` folder, but cannot read files inside it. 
-* **Step 2: Establish a theory.** Share permissions allow everyone, but NTFS (Security) permissions are restrictive. 
-* **Step 3: Test the theory.** Right-click the folder in Windows -> Security. Notice "Read" is missing for the user attempting to access it.
-* **Step 4 & 5: Plan and Implement.** Edit the NTFS permissions to allow Read/Write for the required user.
-* **Step 6: Verify.** File transfers now complete successfully.
-
----
-
-## 10. OSI Layer Analysis
+## 9. OSI Layer Analysis
 This lab directly exercises multiple layers of the OSI model:
 * **Layer 1 (Physical):** Simulated via VirtualBox's virtual network adapter and "Cable Connected" status. 
 * **Layer 2 (Data Link):** MAC address resolution (ARP) occurs on the `LabNet` virtual switch.
@@ -214,17 +214,9 @@ This lab directly exercises multiple layers of the OSI model:
 
 ---
 
-## 11. Common Mistakes
+## 10. Common Mistakes
 * **Assuming Ping = Open Service:** A machine might reply to a ping (Layer 3), but the SSH or SMB port might be closed (Layer 4/7). 
 * **Share vs. NTFS Permissions:** In Windows, the *most restrictive* permission between the "Sharing" tab and the "Security" (NTFS) tab wins. 
 * **Subprocess execution stalling:** When using `subprocess` in Python to automate SSH, if host-key checking isn't disabled (`-o StrictHostKeyChecking=no`), the script will hang indefinitely waiting for a hidden `Y/N` terminal prompt.
-
----
-
-## 12. Key Takeaways
-* *I designed an isolated virtual environment to test interoperability between Windows and Linux without jeopardizing a production network.*
-* *Rather than just setting up file shares, I wrote Python scripts to act as a health-check monitor, simulating how a tech would verify service uptime at scale.*
-* *I intentionally broke my own environment—messing with subnet masks, firewalls, and service states—so I could practice structured troubleshooting using the CompTIA methodology.*
-* *I prioritized using Python's standard library (`socket`, `subprocess`) to ensure my scripts could run anywhere without dependency management overhead.*
 
 ---
