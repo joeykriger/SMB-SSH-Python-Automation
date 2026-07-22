@@ -199,6 +199,7 @@ def check_smb_access(ip, share, user, password):
         print(result.stderr)
 
 if __name__ == "__main__":
+    # For true automation, declare the actual username for win_user and actual password for win_pass
     win_user = input("Enter Windows Username (e.g., localadmin): ")
     win_pass = getpass.getpass("Enter Windows Password: ")
     check_smb_access("192.168.10.20", "WinShare", win_user, win_pass)
